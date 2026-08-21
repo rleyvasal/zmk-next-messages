@@ -10,6 +10,21 @@ from google.protobuf import descriptor_pb2
 
 
 EXPECTED_FIELDS = {
+    "zmk.studio.Request": {
+        "request_id": 1,
+        "core": 3,
+        "behaviors": 4,
+        "keymap": 5,
+        "runtime_config": 6,
+    },
+    "zmk.studio.RequestResponse": {
+        "request_id": 1,
+        "meta": 2,
+        "core": 3,
+        "behaviors": 4,
+        "keymap": 5,
+        "runtime_config": 6,
+    },
     "zmk.runtime_config.Request": {
         "request_id": 1,
         "get_runtime_capabilities": 2,
@@ -94,7 +109,7 @@ def main():
         subprocess.run(
             [
                 args.protoc,
-                f"--proto_path={proto.parent.parent}",
+                f"--proto_path={proto.parent}",
                 f"--descriptor_set_out={descriptor_path}",
                 "--include_imports",
                 str(proto),

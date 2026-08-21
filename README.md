@@ -6,7 +6,12 @@ persistence layouts, generated source, or editor state.
 
 ## Version 0.1.0
 
-`proto/zmk/runtime_config.proto` defines the Runtime Config v1 subsystem:
+`proto/zmk/runtime_config.proto` defines the Runtime Config v1 subsystem. It
+is carried as field 6 of the established `zmk.studio.Request` and
+`zmk.studio.RequestResponse` envelopes in `proto/zmk/studio.proto`, so it
+uses the existing Studio USB serial and BLE transports.
+
+The subsystem provides:
 
 - capability, status, and active-snapshot reads;
 - transactional full-snapshot uploads in chunks;
