@@ -32,6 +32,9 @@ own format, and returns a firmware-assigned generation.
 `persistence_schema_version` describes a firmware's private snapshot storage.
 `capability_fingerprint` identifies the engines and fixed resource limits in a
 specific firmware build.
+`selected_to_stock_positions` maps the active physical-layout view to the
+canonical stock positions used by runtime keymap overrides and combos. Clients
+must use it instead of assuming their rendered key order is canonical.
 
 Both `zmk-next` and `zmk-next-configurator` must pin the same tagged release or
 commit of this repository.

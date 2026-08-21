@@ -80,6 +80,17 @@ EXPECTED_FIELDS = {
         "max_keymap_overrides": 7,
         "max_tap_dance_actions": 8,
     },
+    "zmk.runtime_config.RuntimeCapabilities": {
+        "protocol_version": 1,
+        "persistence_schema_version": 2,
+        "capability_fingerprint": 3,
+        "supported_object_types": 4,
+        "supported_features": 5,
+        "limits": 6,
+        "compiled_behaviors": 7,
+        "selected_position_count": 8,
+        "selected_to_stock_positions": 9,
+    },
     "zmk.runtime_config.ComboDefinition": {
         "id": 1,
         "key_positions": 2,

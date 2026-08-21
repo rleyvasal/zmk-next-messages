@@ -115,6 +115,13 @@ message RuntimeCapabilities {
     repeated RuntimeFeature supported_features = 5;
     RuntimeConfigLimits limits = 6;
     repeated CompiledBehaviorCapability compiled_behaviors = 7;
+    // Number of positions in the active physical-layout view. Runtime
+    // keymap overrides always use the canonical stock position space.
+    uint32 selected_position_count = 8;
+    // For each selected physical-layout position, gives the canonical stock
+    // key position used by RuntimeConfigSnapshot.keymap_overrides. The client
+    // must use this mapping when it renders a selected layout.
+    repeated uint32 selected_to_stock_positions = 9;
 }
 
 message RuntimeConfigLimits {
