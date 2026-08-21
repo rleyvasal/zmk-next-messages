@@ -11,6 +11,11 @@ is carried as field 6 of the established `zmk.studio.Request` and
 `zmk.studio.RequestResponse` envelopes in `proto/zmk/studio.proto`, so it
 uses the existing Studio USB serial and BLE transports.
 
+When Runtime Config is carried in a Studio envelope, clients must use the same
+nonzero request ID in both envelopes. Firmware echoes the outer ID in
+`zmk.studio.RequestResponse` and the nested ID in
+`zmk.runtime_config.Response`.
+
 The subsystem provides:
 
 - capability, status, and active-snapshot reads;
