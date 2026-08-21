@@ -1,0 +1,360 @@
+// Copyright (c) 2026 The ZMK Next Contributors
+// SPDX-License-Identifier: MIT
+//
+// Runtime Config v1 public client/firmware contract. The persistent on-flash
+// representation is deliberately not specified here.
+
+syntax = "proto3";
+
+package zmk.runtime_config;
+
+message Request {
+    // A nonzero client-generated ID. Response.request_id always echoes it.
+    uint32 request_id = 1;
+
+    oneof request_type {
+        GetRuntimeCapabilitiesRequest get_runtime_capabilities = 2;
+        GetRuntimeConfigStatusRequest get_runtime_config_status = 3;
+        GetRuntimeConfigRequest get_runtime_config = 4;
+        BeginRuntimeUpdateRequest begin_runtime_update = 5;
+        UploadRuntimeUpdateChunkRequest upload_runtime_update_chunk = 6;
+        ValidateRuntimeUpdateRequest validate_runtime_update = 7;
+        CommitRuntimeUpdateRequest commit_runtime_update = 8;
+        AbortRuntimeUpdateRequest abort_runtime_update = 9;
+        ResetRuntimeConfigRequest reset_runtime_config = 10;
+    }
+}
+
+message Response {
+    // Echoes the Request.request_id that initiated this response.
+    uint32 request_id = 1;
+    RuntimeConfigError error = 2;
+
+    oneof response_type {
+        RuntimeCapabilities get_runtime_capabilities = 3;
+        RuntimeConfigStatus get_runtime_config_status = 4;
+        GetRuntimeConfigResponse get_runtime_config = 5;
+        BeginRuntimeUpdateResponse begin_runtime_update = 6;
+        UploadRuntimeUpdateChunkResponse upload_runtime_update_chunk = 7;
+        ValidationResult validate_runtime_update = 8;
+        CommitRuntimeUpdateResult commit_runtime_update = 9;
+        AbortRuntimeUpdateResponse abort_runtime_update = 10;
+        CommitRuntimeUpdateResult reset_runtime_config = 11;
+    }
+}
+
+message GetRuntimeCapabilitiesRequest {}
+
+message GetRuntimeConfigStatusRequest {}
+
+message GetRuntimeConfigRequest {}
+
+message GetRuntimeConfigResponse {
+    RuntimeConfigSnapshot snapshot = 1;
+    RuntimeConfigStatus status = 2;
+}
+
+message BeginRuntimeUpdateRequest {
+    // Set to zero to accept whichever generation is currently active.
+    uint32 expected_active_generation = 1;
+    uint32 snapshot_size = 2;
+    // Optional SHA-256 of the complete serialized RuntimeConfigSnapshot.
+    bytes snapshot_sha256 = 3;
+}
+
+message BeginRuntimeUpdateResponse {
+    uint32 update_id = 1;
+    uint32 max_chunk_bytes = 2;
+}
+
+message UploadRuntimeUpdateChunkRequest {
+    uint32 update_id = 1;
+    // Byte offset in the serialized RuntimeConfigSnapshot.
+    uint32 offset = 2;
+    bytes chunk = 3;
+}
+
+message UploadRuntimeUpdateChunkResponse {
+    uint32 accepted_bytes = 1;
+    uint32 next_offset = 2;
+}
+
+message ValidateRuntimeUpdateRequest {
+    uint32 update_id = 1;
+}
+
+message CommitRuntimeUpdateRequest {
+    uint32 update_id = 1;
+}
+
+message CommitRuntimeUpdateResult {
+    uint32 generation = 1;
+    bool saved = 2;
+    RuntimeConfigActivation activation = 3;
+    RuntimeConfigStatus status = 4;
+}
+
+message AbortRuntimeUpdateRequest {
+    uint32 update_id = 1;
+}
+
+message AbortRuntimeUpdateResponse {
+    bool aborted = 1;
+}
+
+message ResetRuntimeConfigRequest {
+    // Set to zero to accept whichever generation is currently active.
+    uint32 expected_active_generation = 1;
+}
+
+message RuntimeCapabilities {
+    uint32 protocol_version = 1;
+    uint32 persistence_schema_version = 2;
+    bytes capability_fingerprint = 3;
+    repeated RuntimeObjectType supported_object_types = 4;
+    repeated RuntimeFeature supported_features = 5;
+    RuntimeConfigLimits limits = 6;
+    repeated CompiledBehaviorCapability compiled_behaviors = 7;
+}
+
+message RuntimeConfigLimits {
+    uint32 max_runtime_objects = 1;
+    uint32 max_combos = 2;
+    uint32 max_combo_keys = 3;
+    uint32 max_macro_steps = 4;
+    uint32 max_persisted_bytes = 5;
+    uint32 max_layers = 6;
+    uint32 max_keymap_overrides = 7;
+}
+
+message CompiledBehaviorCapability {
+    uint32 behavior_id = 1;
+    string display_name = 2;
+    uint32 parameter_count = 3;
+}
+
+enum RuntimeObjectType {
+    RUNTIME_OBJECT_TYPE_UNSPECIFIED = 0;
+    RUNTIME_OBJECT_TYPE_MOD_MORPH = 1;
+    RUNTIME_OBJECT_TYPE_MACRO = 2;
+    RUNTIME_OBJECT_TYPE_HOLD_TAP = 3;
+    RUNTIME_OBJECT_TYPE_TAP_DANCE = 4;
+}
+
+enum RuntimeFeature {
+    RUNTIME_FEATURE_UNSPECIFIED = 0;
+    RUNTIME_FEATURE_KEYMAP_OVERRIDES = 1;
+    RUNTIME_FEATURE_LAYER_METADATA = 2;
+    RUNTIME_FEATURE_COMBOS = 3;
+    RUNTIME_FEATURE_MOD_MORPHS = 4;
+    RUNTIME_FEATURE_MACROS = 5;
+    RUNTIME_FEATURE_HOLD_TAPS = 6;
+    RUNTIME_FEATURE_TAP_DANCES = 7;
+    RUNTIME_FEATURE_MACRO_WAIT = 8;
+    RUNTIME_FEATURE_MACRO_PAUSE_UNTIL_RELEASE = 9;
+    RUNTIME_FEATURE_COMBO_SLOW_RELEASE = 10;
+    RUNTIME_FEATURE_COMBO_REQUIRE_PRIOR_IDLE = 11;
+    RUNTIME_FEATURE_HOLD_TAP_QUICK_TAP = 12;
+    RUNTIME_FEATURE_HOLD_TAP_REQUIRE_PRIOR_IDLE = 13;
+}
+
+message RuntimeConfigSnapshot {
+    uint32 persistence_schema_version = 1;
+    // Firmware assigns this on a committed snapshot. Clients set it to zero
+    // when uploading a new draft.
+    uint32 generation = 2;
+    bytes capability_fingerprint = 3;
+    repeated KeymapOverride keymap_overrides = 4;
+    repeated LayerMetadata layers = 5;
+    repeated RuntimeObject runtime_objects = 6;
+    repeated ComboDefinition combos = 7;
+}
+
+message KeymapOverride {
+    uint32 layer_id = 1;
+    uint32 key_position = 2;
+    ActionReference action = 3;
+}
+
+message LayerMetadata {
+    uint32 layer_id = 1;
+    string name = 2;
+    uint32 order = 3;
+}
+
+message ActionReference {
+    oneof target {
+        CompiledBehaviorAction compiled_behavior = 1;
+        uint32 runtime_object_id = 2;
+    }
+}
+
+message CompiledBehaviorAction {
+    uint32 behavior_id = 1;
+    uint32 param1 = 2;
+    uint32 param2 = 3;
+}
+
+message RuntimeObject {
+    // User-defined stable ID. It must not be a RAM address or pool index.
+    uint32 id = 1;
+
+    oneof definition {
+        ModMorphObject mod_morph = 2;
+        MacroObject macro = 3;
+        HoldTapObject hold_tap = 4;
+        TapDanceObject tap_dance = 5;
+    }
+}
+
+message ModMorphObject {
+    uint32 modifiers = 1;
+    ActionReference normal_action = 2;
+    ActionReference morphed_action = 3;
+}
+
+message MacroObject {
+    repeated MacroStep steps = 1;
+}
+
+message MacroStep {
+    oneof instruction {
+        ActionReference tap = 1;
+        ActionReference press = 2;
+        ActionReference release = 3;
+        uint32 wait_ms = 4;
+        bool pause_until_release = 5;
+    }
+}
+
+enum HoldTapFlavor {
+    HOLD_TAP_FLAVOR_UNSPECIFIED = 0;
+    HOLD_TAP_FLAVOR_HOLD_PREFERRED = 1;
+    HOLD_TAP_FLAVOR_BALANCED = 2;
+    HOLD_TAP_FLAVOR_TAP_PREFERRED = 3;
+    HOLD_TAP_FLAVOR_TAP_UNLESS_INTERRUPTED = 4;
+}
+
+message HoldTapObject {
+    ActionReference tap_action = 1;
+    ActionReference hold_action = 2;
+    HoldTapFlavor flavor = 3;
+    uint32 tapping_term_ms = 4;
+    uint32 quick_tap_ms = 5;
+    uint32 require_prior_idle_ms = 6;
+}
+
+message TapDanceObject {
+    repeated TapDanceAction actions = 1;
+    uint32 tapping_term_ms = 2;
+}
+
+message TapDanceAction {
+    uint32 tap_count = 1;
+    ActionReference tap_action = 2;
+    ActionReference hold_action = 3;
+}
+
+message ComboDefinition {
+    // User-defined stable ID for diagnostics and editor identity.
+    uint32 id = 1;
+    // Positions use the firmware's logical stock-keymap position space.
+    repeated uint32 key_positions = 2;
+    uint32 timeout_ms = 3;
+    ActionReference output = 4;
+    bool slow_release = 5;
+    uint32 require_prior_idle_ms = 6;
+}
+
+enum RuntimeConfigState {
+    RUNTIME_CONFIG_STATE_UNSPECIFIED = 0;
+    RUNTIME_CONFIG_STATE_ACTIVE = 1;
+    RUNTIME_CONFIG_STATE_STAGING = 2;
+    RUNTIME_CONFIG_STATE_VALIDATED = 3;
+    RUNTIME_CONFIG_STATE_PERSISTED_PENDING_IDLE = 4;
+    RUNTIME_CONFIG_STATE_FAILED = 5;
+}
+
+enum RuntimeConfigActivation {
+    RUNTIME_CONFIG_ACTIVATION_UNSPECIFIED = 0;
+    RUNTIME_CONFIG_ACTIVATION_ACTIVE = 1;
+    RUNTIME_CONFIG_ACTIVATION_PENDING_IDLE = 2;
+}
+
+message RuntimeConfigStatus {
+    RuntimeConfigState state = 1;
+    uint32 active_generation = 2;
+    uint32 pending_generation = 3;
+    RuntimeConfigError last_error = 4;
+}
+
+enum RuntimeConfigErrorCode {
+    RUNTIME_CONFIG_ERROR_OK = 0;
+    RUNTIME_CONFIG_ERROR_INVALID_REQUEST = 1;
+    RUNTIME_CONFIG_ERROR_PROTOCOL_VERSION = 2;
+    RUNTIME_CONFIG_ERROR_SNAPSHOT_SCHEMA_VERSION = 3;
+    RUNTIME_CONFIG_ERROR_CAPABILITY_FINGERPRINT = 4;
+    RUNTIME_CONFIG_ERROR_STALE_GENERATION = 5;
+    RUNTIME_CONFIG_ERROR_UPDATE_NOT_FOUND = 6;
+    RUNTIME_CONFIG_ERROR_UPDATE_IN_PROGRESS = 7;
+    RUNTIME_CONFIG_ERROR_UPDATE_INCOMPLETE = 8;
+    RUNTIME_CONFIG_ERROR_INVALID_CHUNK = 9;
+    RUNTIME_CONFIG_ERROR_VALIDATION = 10;
+    RUNTIME_CONFIG_ERROR_RESOURCE_LIMIT = 11;
+    RUNTIME_CONFIG_ERROR_PERSISTENCE = 12;
+    RUNTIME_CONFIG_ERROR_ACTIVATION = 13;
+    RUNTIME_CONFIG_ERROR_NOT_SUPPORTED = 14;
+    RUNTIME_CONFIG_ERROR_INTERNAL = 15;
+}
+
+message RuntimeConfigError {
+    RuntimeConfigErrorCode code = 1;
+    string message = 2;
+    repeated RuntimeConfigDiagnostic diagnostics = 3;
+}
+
+enum RuntimeConfigDiagnosticSeverity {
+    RUNTIME_CONFIG_DIAGNOSTIC_SEVERITY_UNSPECIFIED = 0;
+    RUNTIME_CONFIG_DIAGNOSTIC_SEVERITY_ERROR = 1;
+    RUNTIME_CONFIG_DIAGNOSTIC_SEVERITY_WARNING = 2;
+}
+
+message KeyLocation {
+    uint32 layer_id = 1;
+    uint32 key_position = 2;
+}
+
+message RuntimeConfigDiagnostic {
+    RuntimeConfigDiagnosticSeverity severity = 1;
+    RuntimeConfigErrorCode code = 2;
+    string message = 3;
+
+    oneof subject {
+        uint32 runtime_object_id = 4;
+        uint32 combo_id = 5;
+        KeyLocation key_location = 6;
+    }
+
+    // A symbolic field name such as "hold_tap.tapping_term_ms".
+    string field_path = 7;
+}
+
+message ValidationResult {
+    bool valid = 1;
+    repeated RuntimeConfigDiagnostic errors = 2;
+    repeated RuntimeConfigDiagnostic warnings = 3;
+    RuntimeConfigResourceUsage resource_usage = 4;
+}
+
+message ResourceUse {
+    uint32 used = 1;
+    uint32 limit = 2;
+}
+
+message RuntimeConfigResourceUsage {
+    ResourceUse runtime_objects = 1;
+    ResourceUse combos = 2;
+    ResourceUse macro_steps = 3;
+    ResourceUse persisted_bytes = 4;
+    ResourceUse keymap_overrides = 5;
+}
