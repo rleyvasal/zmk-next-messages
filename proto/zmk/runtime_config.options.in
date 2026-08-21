@@ -1,0 +1,4 @@
+zmk.runtime_config.RuntimeCapabilities.capability_fingerprint max_size:16
+zmk.runtime_config.RuntimeConfigSnapshot.capability_fingerprint max_size:16
+zmk.runtime_config.BeginRuntimeUpdateRequest.snapshot_sha256 max_size:32
+zmk.runtime_config.UploadRuntimeUpdateChunkRequest.chunk max_size:@CONFIG_ZMK_RUNTIME_CONFIG_RPC_MAX_CHUNK_BYTES@
