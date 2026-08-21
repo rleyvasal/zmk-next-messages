@@ -125,6 +125,8 @@ message RuntimeConfigLimits {
     uint32 max_persisted_bytes = 5;
     uint32 max_layers = 6;
     uint32 max_keymap_overrides = 7;
+    // Shared pool capacity across all runtime tap-dance actions.
+    uint32 max_tap_dance_actions = 8;
 }
 
 message CompiledBehaviorCapability {
@@ -357,4 +359,5 @@ message RuntimeConfigResourceUsage {
     ResourceUse macro_steps = 3;
     ResourceUse persisted_bytes = 4;
     ResourceUse keymap_overrides = 5;
+    ResourceUse tap_dance_actions = 6;
 }

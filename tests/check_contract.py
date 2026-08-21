@@ -70,6 +70,16 @@ EXPECTED_FIELDS = {
         "hold_tap": 4,
         "tap_dance": 5,
     },
+    "zmk.runtime_config.RuntimeConfigLimits": {
+        "max_runtime_objects": 1,
+        "max_combos": 2,
+        "max_combo_keys": 3,
+        "max_macro_steps": 4,
+        "max_persisted_bytes": 5,
+        "max_layers": 6,
+        "max_keymap_overrides": 7,
+        "max_tap_dance_actions": 8,
+    },
     "zmk.runtime_config.ComboDefinition": {
         "id": 1,
         "key_positions": 2,
@@ -86,6 +96,14 @@ EXPECTED_FIELDS = {
         "combo_id": 5,
         "key_location": 6,
         "field_path": 7,
+    },
+    "zmk.runtime_config.RuntimeConfigResourceUsage": {
+        "runtime_objects": 1,
+        "combos": 2,
+        "macro_steps": 3,
+        "persisted_bytes": 4,
+        "keymap_overrides": 5,
+        "tap_dance_actions": 6,
     },
 }
 
