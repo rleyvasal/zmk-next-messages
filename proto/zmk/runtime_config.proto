@@ -273,6 +273,8 @@ message ComboDefinition {
     ActionReference output = 4;
     bool slow_release = 5;
     uint32 require_prior_idle_ms = 6;
+    // Bit N enables the combo on keymap layer N. Zero means every layer.
+    uint32 layer_mask = 7;
 }
 
 enum RuntimeConfigState {

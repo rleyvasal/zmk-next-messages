@@ -98,6 +98,7 @@ EXPECTED_FIELDS = {
         "output": 4,
         "slow_release": 5,
         "require_prior_idle_ms": 6,
+        "layer_mask": 7,
     },
     "zmk.runtime_config.RuntimeConfigDiagnostic": {
         "severity": 1,
