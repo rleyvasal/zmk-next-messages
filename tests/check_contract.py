@@ -62,6 +62,7 @@ EXPECTED_FIELDS = {
     "zmk.runtime_config.ActionReference": {
         "compiled_behavior": 1,
         "runtime_object_id": 2,
+        "suppress_compiled": 3,
     },
     "zmk.runtime_config.RuntimeObject": {
         "id": 1,
